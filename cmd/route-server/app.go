@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gsmcwhirter/eve-route-finder/pkg/path"
 	"github.com/gsmcwhirter/eve-route-finder/pkg/system"
@@ -118,11 +119,11 @@ func (a *App) handleGetRoute(w http.ResponseWriter, r *http.Request) {
 
 	fromIDs := make([]int, len(req.FromSystems))
 	for i, sname := range req.FromSystems {
-		fromIDs[i] = a.systems[sname]
+		fromIDs[i] = a.systems[strings.ToLower(sname)]
 	}
 	avoidIDs := make([]int, len(req.AvoidSystems))
 	for i, aname := range req.AvoidSystems {
-		avoidIDs[i] = a.systems[aname]
+		avoidIDs[i] = a.systems[strings.ToLower(aname)]
 	}
 	avoidTagIDs := make([]int, len(req.AvoidTags))
 	for i, tname := range req.AvoidTags {
@@ -138,7 +139,7 @@ func (a *App) handleGetRoute(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case req.ToSystem != "":
-		toID := a.systems[req.ToSystem]
+		toID := a.systems[strings.ToLower(req.ToSystem)]
 		if len(fromIDs) == 1 {
 			routes, err = a.pathfinder.FindShortestRoutes(fromIDs[0], toID, avoidIDs, avoidTagIDs, preferNotTagIDs)
 		} else {
@@ -197,8 +198,8 @@ func (a *App) handleListSystems(w http.ResponseWriter, r *http.Request) {
 		Items: make([]string, 0, len(a.systems)),
 	}
 
-	for k := range a.systems {
-		resp.Items = append(resp.Items, k)
+	for _, sd := range a.reverseSystemData {
+		resp.Items = append(resp.Items, sd.Name)
 	}
 
 	w.Header().Add("Content-type", "application/json")
@@ -255,7 +256,7 @@ func (a *App) preparePathFinder() error {
 	// first pass
 	for _, sd := range a.rawDataContents.SystemData {
 		// populate system name lookups
-		a.systems[sd.Name] = sd.ID
+		a.systems[strings.ToLower(sd.Name)] = sd.ID
 		a.reverseSystems[sd.ID] = sd.Name
 		a.reverseSystemData[sd.ID] = sd
 		a.systemSec[sd.ID] = sd.SecStatus
@@ -279,7 +280,7 @@ func (a *App) preparePathFinder() error {
 
 		// set destinations
 		for i, d := range sd.Destinations {
-			graph[sd.ID][i] = a.systems[d]
+			graph[sd.ID][i] = a.systems[strings.ToLower(d)]
 		}
 
 		// set tags

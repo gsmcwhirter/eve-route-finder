@@ -485,17 +485,6 @@ func (f *Finder) findShortestRoutesToTag(start, endTag int, avoids, avoidTags []
 					continue
 				}
 
-				if f.hasTag(neighbor, endTag) {
-					// fmt.Println("made it!")
-					distances[neighbor] = len(candidate) - 1
-					newCandidate := make([]int, 0, len(candidate)+1)
-					newCandidate = append(newCandidate, candidate...)
-					newCandidate = append(newCandidate, neighbor)
-					newCandidates = append(newCandidates, newCandidate)
-					found = true
-					continue
-				}
-
 				if distances[neighbor] > 0 && distances[neighbor] < len(candidate)-1 { // backtracking
 					// fmt.Println("already visited")
 					continue
@@ -508,6 +497,17 @@ func (f *Finder) findShortestRoutesToTag(start, endTag int, avoids, avoidTags []
 
 				if f.hasAnyTag(neighbor, avoidTags) { // avoided
 					// fmt.Println("tag avoided")
+					continue
+				}
+
+				if f.hasTag(neighbor, endTag) {
+					// fmt.Println("made it!")
+					distances[neighbor] = len(candidate) - 1
+					newCandidate := make([]int, 0, len(candidate)+1)
+					newCandidate = append(newCandidate, candidate...)
+					newCandidate = append(newCandidate, neighbor)
+					newCandidates = append(newCandidates, newCandidate)
+					found = true
 					continue
 				}
 
