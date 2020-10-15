@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -15,13 +14,15 @@ import (
 
 type App struct {
 	systemDataFile string
+	listen         string
 
 	rawDataContents DataContents
 
-	tags           map[string]int
-	reverseTags    map[int]string
-	systems        map[string]int
-	reverseSystems map[int]string
+	tags              map[string]int
+	reverseTags       map[int]string
+	systems           map[string]int
+	reverseSystems    map[int]string
+	reverseSystemData map[int]system.Data
 
 	systemSec map[int]string
 
@@ -30,11 +31,12 @@ type App struct {
 
 func NewApp() *App {
 	return &App{
-		tags:           map[string]int{},
-		reverseTags:    map[int]string{},
-		systems:        map[string]int{},
-		reverseSystems: map[int]string{},
-		systemSec:      map[int]string{},
+		tags:              map[string]int{},
+		reverseTags:       map[int]string{},
+		systems:           map[string]int{},
+		reverseSystems:    map[int]string{},
+		reverseSystemData: map[int]system.Data{},
+		systemSec:         map[int]string{},
 	}
 }
 
@@ -65,7 +67,12 @@ type RouteRequest struct {
 
 type RouteResponse struct {
 	Error  string
-	Routes [][]string
+	Routes [][]system.Data
+}
+
+type ListResponse struct {
+	Error string
+	Items []string
 }
 
 func (a *App) writeError(w http.ResponseWriter, estr string, code int) {
@@ -152,7 +159,7 @@ func (a *App) handleGetRoute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := RouteResponse{
-		Routes: make([][]string, len(routes)),
+		Routes: make([][]system.Data, len(routes)),
 	}
 
 	for i, route := range routes {
@@ -166,16 +173,56 @@ func (a *App) handleGetRoute(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) Serve() error {
-	http.HandleFunc("/get_route", a.handleGetRoute)
+func (a *App) handleListTags(w http.ResponseWriter, r *http.Request) {
+	resp := ListResponse{
+		Items: make([]string, 0, len(a.tags)),
+	}
 
-	return http.ListenAndServe(":8080", nil)
+	for k := range a.tags {
+		resp.Items = append(resp.Items, k)
+	}
+
+	w.Header().Add("Content-type", "application/json")
+
+	encoder := json.NewEncoder(w)
+
+	w.WriteHeader(200)
+	if err := encoder.Encode(resp); err != nil {
+		panic(err)
+	}
 }
 
-func (a *App) GetNiceRoute(route []int) []string {
-	niceRoute := make([]string, len(route))
+func (a *App) handleListSystems(w http.ResponseWriter, r *http.Request) {
+	resp := ListResponse{
+		Items: make([]string, 0, len(a.systems)),
+	}
+
+	for k := range a.systems {
+		resp.Items = append(resp.Items, k)
+	}
+
+	w.Header().Add("Content-type", "application/json")
+
+	encoder := json.NewEncoder(w)
+
+	w.WriteHeader(200)
+	if err := encoder.Encode(resp); err != nil {
+		panic(err)
+	}
+}
+
+func (a *App) Serve() error {
+	http.HandleFunc("/get_routes", a.handleGetRoute)
+	http.HandleFunc("/list_tags", a.handleListTags)
+	http.HandleFunc("/list_systems", a.handleListSystems)
+
+	return http.ListenAndServe(a.listen, nil)
+}
+
+func (a *App) GetNiceRoute(route []int) []system.Data {
+	niceRoute := make([]system.Data, len(route))
 	for j, id := range route {
-		niceRoute[j] = fmt.Sprintf("%s [%s]", a.reverseSystems[id], a.systemSec[id][0:1])
+		niceRoute[j] = a.reverseSystemData[id]
 	}
 
 	return niceRoute
@@ -210,6 +257,7 @@ func (a *App) preparePathFinder() error {
 		// populate system name lookups
 		a.systems[sd.Name] = sd.ID
 		a.reverseSystems[sd.ID] = sd.Name
+		a.reverseSystemData[sd.ID] = sd
 		a.systemSec[sd.ID] = sd.SecStatus
 
 		// populate tag name lookups

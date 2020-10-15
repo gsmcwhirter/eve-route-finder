@@ -5,11 +5,11 @@ GIT_SHA := $(shell git rev-parse HEAD)
 APP_NAME := route-server
 PROJECT := github.com/gsmcwhirter/eve-route-finder
 
-SERVER := discordbot@evogames.org:~/eso-discord/
-CONF_FILE := ./trials-bot-config.toml
-SERVICE_FILE := ./eso-trials-bot.service
-START_SCRIPT := ./start-bot.sh
-INSTALLER := ./trials-bot-install.sh
+SERVER := evesite@evogames.org:~/eve-apps/
+SYSTEM_DATA_FILE := ./data/systemdata.yml
+SERVICE_FILE := ./route-server.service
+START_SCRIPT := ./start-server.sh
+INSTALLER := ./route-server-install.sh
 
 GOPROXY ?= https://proxy.golang.org
 
@@ -19,30 +19,35 @@ Q = $(if $(filter 1,$V),,@)
 
 .DEFAULT_GOAL := help
 
-build: version  ## Build the binary
-        $Q GOPROXY=$(GOPROXY) go build -v -ldflags "-X main.AppName=$(APP_NAME) -X main.BuildVersion=$(VERSION) -X main.BuildSHA=$(GIT_SHA) -X main.BuildDate=$(BUILD_DATE)" -o bin/$(APP_NAME) -race $(PROJECT)/cmd/$(APP_NAME)
+build: version test  ## Build the binary
+	$Q GOPROXY=$(GOPROXY) go build -v -ldflags "-X main.AppName=$(APP_NAME) -X main.BuildVersion=$(VERSION) -X main.BuildSHA=$(GIT_SHA) -X main.BuildDate=$(BUILD_DATE)" -o bin/$(APP_NAME) -race $(PROJECT)/cmd/$(APP_NAME)
 
-build-release-bundles: build-release
-        $Q gzip -k -f bin/$(APP_NAME)
-        $Q cp bin/$(APP_NAME).gz bin/$(APP_NAME)-$(VERSION).gz
+build-release: version test  # Build the binary for linux
+	$Q GOPROXY=$(GOPROXY) GOOS=linux go build -v -ldflags "-X main.AppName=$(APP_NAME) -X main.BuildVersion=$(VERSION) -X main.BuildSHA=$(GIT_SHA) -X main.BuildDate=$(BUILD_DATE)" -o bin/$(APP_NAME) $(PROJECT)/cmd/$(APP_NAME)
+
+release: build-release
+	$Q gzip -k -f bin/$(APP_NAME)
+	$Q cp bin/$(APP_NAME).gz bin/$(APP_NAME)-$(VERSION).gz
+	$Q tar czf bin/$(APP_NAME)-static.tar.gz eve-routes
+	$Q cp bin/$(APP_NAME)-static.tar.gz bin/$(APP_NAME)-static-$(VERSION).tar.gz
 
 clean:  ## Remove compiled artifacts
-        $Q rm bin/*
-
-release: generate test build-release-bundles  ## Release build: create a release build (disable race detection, strip symbols)
+	$Q rm bin/*
 
 deps:  ## download dependencies
-        $Q GOPROXY=$(GOPROXY) go mod download
+	$Q GOPROXY=$(GOPROXY) go mod download
 
 test:  ## Run the tests
-        $Q GOPROXY=$(GOPROXY) go test -cover ./...
+	$Q GOPROXY=$(GOPROXY) go test -cover ./...
 
 version:  ## Print the version string and git sha that would be recorded if a release was built now
-        $Q echo $(VERSION) $(GIT_SHA)
+	$Q echo $(VERSION) $(GIT_SHA)
 
 upload:
-        $Q scp $(CONF_FILE) $(SERVICE_FILE) $(START_SCRIPT) $(INSTALLER) $(SERVER)
-        $Q scp  ./bin/$(APP_NAME).gz ./bin/$(APP_NAME)-$(VERSION).gz $(SERVER)
+	$Q scp $(SYSTEM_DATA_FILE) $(SERVICE_FILE) $(START_SCRIPT) $(INSTALLER) $(SERVER)
+	$Q scp  ./bin/$(APP_NAME).gz ./bin/$(APP_NAME)-$(VERSION).gz $(SERVER)
+	$Q scp $(SYSTEM_DATA_FILE) $(SERVER)systemdata.yml-$(VERSION)
+	$Q scp ./bin/$(APP_NAME)-static.tar.gz ./bin/$(APP_NAME)-static-$(VERSION).tar.gz $(SERVER)
 
 help:  ## Show the help message
-        @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' ./Makefile
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' ./Makefile

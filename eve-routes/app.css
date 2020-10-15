@@ -1,0 +1,91 @@
+@import url(https://fonts.googleapis.com/css?family=Lato:300,300italic,400,700,700italic);
+
+/**
+ * Base Elements
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+div,
+span,
+a,
+button {
+  font-family: 'Lato', 'Open Sans', 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  background: #f3f3f3;
+  padding: 1em;
+}
+
+div {
+  padding: 1em;
+}
+
+dt {
+  margin-top: 1em;
+  float: left;
+  clear: left;
+  width: 10em;
+}
+
+dd {
+  margin-top: 1em;
+  float: left;
+}
+
+.clear-left {
+  clear: left;
+}
+
+input, select {
+  width: 20em;
+  padding: 2px;
+}
+
+label {
+  font-weight: bold;
+}
+
+ol.route {
+    margin: 1em;
+    min-width: 20em;
+    float: left;
+    overflow: auto;
+    border: 1px solid black;
+    list-style-type: none;
+}
+
+ol.route li {
+    padding: 0.25em 0.5em;
+    display: block;
+    /* border: 1px solid black; */
+}
+
+ol.route li.high {
+    background-color: cyan;
+}
+
+ol.route li.low {
+    background-color: yellow;
+}
+
+ol.route li.null {
+    background-color: red;
+}
+
+ol.route li.trig {
+    background-color: slategray;
+}

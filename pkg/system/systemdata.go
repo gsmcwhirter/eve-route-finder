@@ -1,11 +1,11 @@
 package system
 
 type Data struct {
-	ID            int
-	Name          string
-	Constellation string
-	Region        string
-	Destinations  []string
-	SecStatus     string
-	Tags          []string
+	ID            int      `json:"id"`
+	Name          string   `json:"name"`
+	Constellation string   `json:"constellation"`
+	Region        string   `json:"region"`
+	Destinations  []string `json:"destinations"`
+	SecStatus     string   `json:"sec_status"`
+	Tags          []string `json:"tags"`
 }

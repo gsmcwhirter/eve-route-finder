@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>Eve Route Finder</title>
+        <link rel="stylesheet" href="app.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cash/8.1.0/cash.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ky@0.24.0/umd.js"></script>
+        <script src="app.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <h1>Eve Route Finder</h1>
+
+        <div>
+            <form id="route-form" method="get">
+                <dl>
+                    <dt><label for="from_systems">From Systems:</label></dt>
+                    <dd><input type="text" name="from_systems" id="from_systems" /></dd>
+            
+                    <dt><label for="to_system">To System:</label></dt>
+                    <dd><input type="text" name="to_system" id="to_system" /></dd>
+            
+                    <dt><label for="to_tag">To Kind:</label></dt>
+                    <dd><select name="to_tag" id="to_tag">
+                        <option value=""></option>
+                    </select></dd>
+            
+                    <dt><label for="avoid_systems">Avoid Systems:</label></dt>
+                    <dd><input type="text" name="avoid_systems" id="avoid_systems" /></dd>
+            
+                    <dt><label for="avoid_tags">Avoid Kinds:</label></dt>
+                    <dd><select name="avoid_tags" id="avoid_tags" multiple="multiple" size="5"></select></dd>
+            
+                    <dt><label for="prefer_not_tags">Try to Avoid Kinds:</label></dt>
+                    <dd><select name="prefer_not_tags" id="prefer_not_tags" multiple="multiple" size="5"></select></dd>
+                </dl>
+                <div class="clear-left"></div>
+                <button type="submit">Find Routes</button>
+            </form>
+        </div>
+        <div id="routes" style="display: none;">
+            <h2>Routes</h2>
+            <div id="routes-list"></div>
+        </div>
+    </body>
+</html>

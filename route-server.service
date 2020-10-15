@@ -1,0 +1,22 @@
+[Unit]
+Description=route-server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=evesite
+Group=evesite
+
+LimitNOFILE=999996
+# LimitNProc=...
+
+ExecStart=/home/evesite/eve-apps/start-server.sh
+
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
