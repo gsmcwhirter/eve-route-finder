@@ -2,6 +2,7 @@ package path
 
 import (
 	stderr "errors"
+	"fmt"
 
 	"github.com/gonum/stat/combin"
 	"github.com/gsmcwhirter/go-util/v7/errors"
@@ -302,10 +303,10 @@ func (f *Finder) FindShortestRoutesToTag(start, endTag int, avoids, avoidTags, p
 		minLength := -1
 
 		combos := combin.Combinations(numPrefer, numPrefer-i)
-		avoidTagsPlus := make([]int, 0, len(avoidTags)+numPrefer-i)
-		avoidTagsPlus = append(avoidTagsPlus, avoidTags...)
 
 		for _, combo := range combos {
+			avoidTagsPlus := make([]int, 0, len(avoidTags)+numPrefer-i)
+			avoidTagsPlus = append(avoidTagsPlus, avoidTags...)
 			for _, idx := range combo {
 				avoidTagsPlus = append(avoidTagsPlus, preferNotTags[idx])
 			}
@@ -389,13 +390,20 @@ func (f *Finder) FindAllShortestRoutesToTag(starts []int, endTag int, avoids, av
 		minLength := -1
 
 		combos := combin.Combinations(numPrefer, numPrefer-i)
-		avoidTagsPlus := make([]int, 0, len(avoidTags)+numPrefer-i)
-		avoidTagsPlus = append(avoidTagsPlus, avoidTags...)
+
+		fmt.Printf("avoid: %v\n", avoidTags)
+		fmt.Printf("prefer not: %v\n", preferNotTags)
 
 		for _, combo := range combos {
+			avoidTagsPlus := make([]int, 0, len(avoidTags)+numPrefer-i)
+			avoidTagsPlus = append(avoidTagsPlus, avoidTags...)
 			for _, idx := range combo {
 				avoidTagsPlus = append(avoidTagsPlus, preferNotTags[idx])
 			}
+
+			fmt.Printf("combo: %v\n", combo)
+			fmt.Printf("full avoids: %v\n", avoidTagsPlus)
+			fmt.Printf("minLength before: %v\n", minLength)
 
 			for _, start := range starts {
 				routes, err := f.findShortestRoutesToTag(start, endTag, avoids, avoidTagsPlus)
@@ -414,6 +422,8 @@ func (f *Finder) FindAllShortestRoutesToTag(starts []int, endTag int, avoids, av
 					minLength = routeLength
 				}
 			}
+
+			fmt.Printf("minLength after: %v\n", minLength)
 		}
 
 		if len(looserRoutes) == 0 {
